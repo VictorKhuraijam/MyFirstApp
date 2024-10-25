@@ -165,7 +165,7 @@ export default function Comments({ postId }) {
                                 <div className="relative h-full">
                                     {/* Edit/Delete Buttons */}
                                     {userData?.$id === comment?.creator.$id && (
-                                        <div className="absolute top-0 right-0 flex gap-2">
+                                        <div className="absolute top-0 right-0 flex gap-2 flex-col">
                                             <button
                                                 onClick={() => handleEditToggle(comment.$id, comment.content)}
                                                 className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
