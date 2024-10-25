@@ -17,9 +17,7 @@ export class AuthService {
             this.avatars = new Avatars(this.client)
             this.databases = new Databases(this.client)
 
-              // Add error handling
-    console.log('Appwrite endpoint:', conf.appwriteUrl);
-    console.log('Appwrite project:', conf.appwriteProjectId);
+
           }
 
         async createAccount({email, password, name, username }) {
@@ -57,7 +55,7 @@ export class AuthService {
       async sendVerificationEmail () {
         try {
           await this.account.createVerification(
-            conf.AppwriteRedirectUrl + '/verify-email' // frontend verification page URL
+            `${conf.AppwriteRedirectUrl}/verify-email`// frontend verification page URL
           );
           return true;
         } catch (error) {

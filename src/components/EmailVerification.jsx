@@ -12,6 +12,7 @@ function EmailVerification() {
     const [verificationStatus, setVerificationStatus] = useState('verifying') // verifying, success, error
     const [error, setError] = useState("")
     const [resendCooldown, setResendCooldown] = useState(0)
+    const [isResending, setIsResending] = useState(false);
 
     useEffect(() => {
         const verifyEmail = async () => {
@@ -45,8 +46,9 @@ function EmailVerification() {
     }, [searchParams, navigate, dispatch])
 
     const handleResendVerification = async () => {
-        if (resendCooldown > 0) return
+        if (resendCooldown > 0 || isResending) return
 
+        setIsResending(true);
         try {
             await authService.sendVerificationEmail()
             setResendCooldown(60) // Start 60 second cooldown
@@ -64,6 +66,8 @@ function EmailVerification() {
         } catch (error) {
           console.error("Verification email not recieved:", error);
             setError('Failed to resend verification email')
+        } finally{
+            setIsResending(false)
         }
     }
 
