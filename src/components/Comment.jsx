@@ -19,7 +19,7 @@ import {
     editCommentFailure
 } from "../store/commentSlice";
 
-export default function Comments({ postId }) {
+function Comments({ postId }) {
     const [newComment, setNewComment] = useState("");
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedCommentContent, setEditedCommentContent] = useState("");
@@ -28,7 +28,100 @@ export default function Comments({ postId }) {
     const [user, setUser] = useState({})
     const dispatch = useDispatch();
 
-    // ... (keep all the existing functions: useEffect, handleSubmit, handleDelete, etc.)
+    useEffect(() => {
+        const fetchComments = async () => {
+            dispatch(fetchCommentsStart());
+            try {
+                const fetchedComments = await authService.getCommentsForPost(postId);
+                dispatch(fetchCommentsSuccess(fetchedComments));
+
+                const uniqueCreatorIds = [...new Set(fetchedComments.map(comment => comment.creator.$id))];
+                const profiles = await Promise.all(
+                    uniqueCreatorIds.map(async (creatorId) => {
+                        const user = await authService.getUserByDocumentId(creatorId);
+                        return { [creatorId]: user };
+                    })
+                );
+                setUser(Object.assign({}, ...profiles));
+            } catch (error) {
+                dispatch(fetchCommentsFailure(error.message));
+            }
+        };
+        fetchComments();
+    }, [postId, dispatch]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
+
+        dispatch(addCommentStart());
+        try {
+            const comment = await authService.addComment(postId, userData.$id, newComment);
+            dispatch(addCommentSuccess(comment));
+            setNewComment("");
+        } catch (error) {
+            dispatch(addCommentFailure(error.message));
+            console.error("Failed to add comment:", error);
+        }
+    };
+
+    const handleDelete = async (commentId) => {
+        dispatch(deleteCommentStart());
+        try {
+            await authService.deleteComment(commentId);
+            dispatch(deleteCommentSuccess(commentId));
+        } catch (error) {
+            dispatch(deleteCommentFailure(error.message));
+            console.error("Failed to delete comment:", error);
+        }
+    };
+
+    const handleEditToggle = (commentId, currentContent) => {
+        setEditingCommentId(commentId);
+        setEditedCommentContent(currentContent)
+    };
+
+    const handleEditSubmit = async (commentId) => {
+        if(!editedCommentContent.trim()) return;
+
+        dispatch(editCommentStart());
+        try {
+            const updatedComment = await authService.updateComment(commentId, editedCommentContent);
+            dispatch(editCommentSuccess(updatedComment));
+
+            const updatedComments = comments.map((comment) =>
+                comment.$id === commentId
+                    ? { ...comment, content: editedCommentContent, updatedAt: new Date().toISOString() }
+                    : comment
+            );
+            dispatch(fetchCommentsSuccess(updatedComments));
+
+            setEditingCommentId(null);
+        } catch (error) {
+            dispatch(editCommentFailure(error.message));
+            console.log("Failed to update comment:", error);
+        }
+    };
+
+    const formatDate = (createdAt, updatedAt) => {
+        const createdTime = new Date(createdAt).toLocaleString();
+
+        if (updatedAt && new Date(updatedAt).getTime() > new Date(createdAt).getTime()) {
+            const updatedTime = new Date(updatedAt).toLocaleString();
+            return `Updated ${timeAgo(updatedTime)}`;
+        }
+
+        return `Posted ${timeAgo(createdTime)}`;
+    };
+
+    const getUserImageId = (creatorId, comment) => {
+        const profile = user[creatorId];
+        if(profile && profile.imageId){
+            return appwriteService.getProfilePicturePreview(profile.imageId)
+        }
+        return comment.imageUrl
+    };
+
 
     return (
         <div className="max-w-4xl mx-auto p-4">
@@ -167,3 +260,5 @@ export default function Comments({ postId }) {
         </div>
     );
 }
+
+export default Comments
