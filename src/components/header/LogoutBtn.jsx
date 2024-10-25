@@ -20,7 +20,7 @@ function LogoutBtn() {
   }
   return (
     <button
-    className='w-full px-3 py-2 text-white text-left rounded-lg bg-gray-600
+    className='w-full px-3 py-2 text-white text-left rounded-lg bg-gray-500
                         hover:bg-gray-600 transition-colors duration-200
                         md:hover:bg-blue-100 md:hover:text-gray-900'
     onClick={logoutHandler}
