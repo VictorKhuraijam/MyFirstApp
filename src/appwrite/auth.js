@@ -16,7 +16,11 @@ export class AuthService {
             this.account = new Account(this.client)
             this.avatars = new Avatars(this.client)
             this.databases = new Databases(this.client)
-        }
+
+              // Add error handling
+    console.log('Appwrite endpoint:', conf.appwriteUrl);
+    console.log('Appwrite project:', conf.appwriteProjectId);
+          }
 
         async createAccount({email, password, name, username }) {
 

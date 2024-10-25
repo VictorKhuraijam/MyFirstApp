@@ -9,7 +9,7 @@ const conf = {
   appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
   appwriteProfileBucketId: String(import.meta.env.VITE_APPWRITE_PROFILE_BUCKET_ID),
   RTE_Api: String(import.meta.env.VITE_RTE_API),
-  AppwriteRedirectUrl: 'http://my-first-app-smoky.vercel.app/'
+  AppwriteRedirectUrl: 'http://my-first-app-smoky.vercel.app'
 }
 
 
