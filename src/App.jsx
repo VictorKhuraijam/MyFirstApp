@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import {useDispatch} from "react-redux"
 import './App.css'
@@ -7,7 +6,6 @@ import {Header, Footer} from "./components"
 import {Outlet} from "react-router-dom"
 
 function App() {
-
   const [loading, setLoading] = useState(true)
   const dispatch = useDispatch()
 
@@ -25,7 +23,7 @@ function App() {
     initializeAuth();
   }, [dispatch]);
 
-
+ 
 
   return (
     <div className='min-h-screen flex flex-wrap content-between bg-gray-400'>

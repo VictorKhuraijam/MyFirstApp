@@ -116,7 +116,7 @@ function Header() {
           <div className='relative z-50 ml-auto md:hidden'>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className='p-2 hover:bg-gray-600 rounded-lg focus:outline-none'
+              className='p-2 bg-gray-600 hover:bg-gray-500 rounded-lg focus:outline-none'
             >
               {menuOpen ?
                 <HiX className='h-6 w-6 text-white' /> :

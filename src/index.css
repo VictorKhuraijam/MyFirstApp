@@ -58,35 +58,6 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-.browser-css  {
-  text-align: left !important;
-  background-color: aliceblue;
-  padding: 15px;
-}
-
-.bio {
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limits bio to 2 lines */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 3rem; /* Set a fixed height for 2 lines of text */
-}
-
-.profile-card {
-  width: 100%; /* Set the card to take full width of the container */
-  max-width: 350px; /* Increase the card width to a bit more */
-}
-
-
-
-.base-medium {
-  @apply text-[16px] font-medium leading-[140%];
-}
-
-.small-medium {
-  @apply text-[14px] font-medium leading-[140%];
-}
 
 
 @media (prefers-color-scheme: light) {
