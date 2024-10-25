@@ -158,8 +158,12 @@ export class AuthService {
       //Enhanced login method to check verification
        async login({email, password}){
           try {
+            console.log('Attempting login with:', { email });
               const session = await this.account.createEmailPasswordSession(email, password);
-              const user = await this.getCurrentUser()
+              console.log('Session created:', session);
+
+              const user = await this.getCurrentUser();
+              console.log('Current user:', user);
 
               //Check if email is verified
               if(!user.emailVerification){
@@ -168,7 +172,8 @@ export class AuthService {
               }
               return session
           } catch (error) {
-           console.log(error)
+           console.error(error);
+           console.error('Error response:',error.response);
             throw new Error("Failed to login. Please check your email and password and try again")
             }
           }
