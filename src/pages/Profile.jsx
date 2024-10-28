@@ -5,15 +5,15 @@ import { Container } from '../components';
 import {UserSavedPosts, UserPosts} from '../components/index'
 import appwriteService from '../appwrite/config';
 import authService from '../appwrite/auth';
-import { fetchUserStart, fetchUserSuccess, fetchUserFailure, updateProfileImage, deleteProfileImage } from '../store/userSlice';
+import { setUserLoading, setUserData, setUserError, updateProfileImage, deleteProfileImage } from '../store/userSlice';
 import { getCurrentUserData } from '../store/getCurrentUserData';
 
 
 const Profile = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { user, loading, error } = useSelector((state) => state.user);
-  const currentUser = useSelector((state) => state.auth.userData);
+  const {userData: user, loading, error } = useSelector((state) => state.user);
+  const currentUser = useSelector((state) => state.user.userData);
 
   const [activeTab, setActiveTab] = useState('posts');
   const [isEditing, setIsEditing] = useState(false);
@@ -35,7 +35,7 @@ const Profile = () => {
       return;
     }
 
-    dispatch(fetchUserStart());
+    dispatch(setUserLoading());
     try {
       const userResponse = await authService.getUserByDocumentId(id);
       if (!userResponse) {
@@ -50,9 +50,9 @@ const Profile = () => {
       });
 
       const postsResponse = await appwriteService.getPostsByUser(userResponse.userId);
-      dispatch(fetchUserSuccess({ user: userResponse, posts: postsResponse }));
+      dispatch(setUserData({ user: userResponse, posts: postsResponse }));
     } catch (error) {
-      dispatch(fetchUserFailure({ error: error.message }));
+      dispatch(setUserError({ error: error.message }));
     }
   }, [dispatch, id]);
 
@@ -127,9 +127,9 @@ const Profile = () => {
       const updatedProfile = await authService.updateUserProfile(id, updatedProfileData);
       if (updatedProfile) {
         const refreshedUser = await authService.getUserByDocumentId(id);
-        dispatch(fetchUserSuccess({ user: refreshedUser }));
+        dispatch(setUserData({ user: refreshedUser }));
         //Ensure the header updates with the new user data to reflect the change in profile picture instantly
-        dispatch(getCurrentUserData());  // Fetch and update the global auth state
+        dispatch(getCurrentUserData());  // Fetch and update the global auth state and user state
 
         setIsEditing(false);
         setIsManagingImage(false);
@@ -186,7 +186,7 @@ const Profile = () => {
 
          // Force refresh user data
          const refreshedUser = await authService.getUserByDocumentId(id);
-         dispatch(fetchUserSuccess({ user: refreshedUser }));
+         dispatch(setUserData({ user: refreshedUser }));
          dispatch(getCurrentUserData());
          setIsManagingImage(false);
 

@@ -1,29 +1,18 @@
-import { useState, useEffect } from 'react'
-import {useDispatch} from "react-redux"
+import { useEffect } from 'react'
+import {useDispatch, useSelector} from "react-redux"
 import './App.css'
-import { getCurrentUserData } from './store/getCurrentUserData'
+import { initializeSession } from './store/session'
 import {Header, Footer} from "./components"
 import {Outlet} from "react-router-dom"
 
 function App() {
-  const [loading, setLoading] = useState(true)
   const dispatch = useDispatch()
+  const {loading} = useSelector(state => state.auth.loading);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-      dispatch(getCurrentUserData()); // Dispatch your new function to fetch user data
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(initializeSession())
 
-    initializeAuth();
   }, [dispatch]);
-
- 
 
   return (
     <div className='min-h-screen flex flex-wrap content-between bg-gray-400'>

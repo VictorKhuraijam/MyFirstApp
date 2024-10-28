@@ -1,32 +1,31 @@
-import {useState} from 'react'
+
 import {Link, useNavigate} from 'react-router-dom'
-import {login as authLogin} from "../store/authSlice.js"
+import { loginUser } from '../store/session'
 import {Button, Input, Logo} from './index.js'
-import { useDispatch } from 'react-redux'
-import authService from '../appwrite/auth.js'
+import { useDispatch, useSelector } from 'react-redux'
 import {useForm} from 'react-hook-form'
 
 
 function Login() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const {register, handleSubmit} = useForm()
-  const [error, setError] = useState("")
+  const {register, handleSubmit} = useForm();
+  const {error, loading} = useSelector((state) => state.auth)
 
   const login = async(data) => {
-      setError("")
-      try {
-          const session = await authService.login(data)
-          if(session){
-            const userData = await authService.getCurrentUser()
-            if(userData) dispatch(authLogin(userData));
 
-            navigate("/")
-          }
-      } catch (error) {
-          setError(error.message)
-      }
-  }
+      try {
+        const result = await dispatch(loginUser(data)).unwrap();
+        if (result?.success) {
+            navigate("/");
+        }
+    } catch (error) {
+        // Error is already handled in the thunk
+        console.error("Login failed:", error);
+    }
+};
+
+console.log('loginUserthunk:', loginUser)
 
   return (
     <div
@@ -73,9 +72,12 @@ function Login() {
                 })}
                 />
                 <Button
-                type='submit'
-                className='w-full'
-                >Sign in</Button>
+                 type='submit'
+                 className='w-full'
+                 disabled={loading}
+                 >
+                            {loading ? 'Signing in...' : 'Sign in'}
+                 </Button>
             </div>
         </form>
       </div>

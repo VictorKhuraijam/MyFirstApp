@@ -1,44 +1,60 @@
-import { createSlice } from '@reduxjs/toolkit';
+
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+    userData: null,
+    loading: false,
+    error: null
+}
 
 const userSlice = createSlice({
-  name: 'user',
-  initialState: {
-    user: null,
-    loading: false,
-    error: null,
-  },
-  reducers: {
-    fetchUserStart(state) {
-      state.loading = true;
-      state.error = null;
-    },
-    fetchUserSuccess(state, action) {
-      state.loading = false;
-      state.user = action.payload.user;
-    },
-    fetchUserFailure(state, action) {
-      state.loading = false;
-      state.error = action.payload.error;
-    },
-    // Added the reducer so that it is reflected on the header instantly instead of requiring a page refresh
-    updateProfileImage(state, action) {
-      if(state.user){
-        state.user.imageId = action.payload.imageId;
-      }
-    },
-    deleteProfileImage(state) {
-      if(state.user) {
-        state.user.imageIde = null;
-      }
-    },
-  },
+    name: "user",
+    initialState,
+    reducers: {
+        setUserLoading: (state, action) => {
+            state.loading = action.payload;
+            if (action.payload === true) {
+                state.error = null;
+            }
+        },
+        setUserData: (state, action) => {
+            state.userData = action.payload;
+            state.loading = false;
+            state.error = null;
+        },
+        updateUserData: (state, action) => {
+            state.userData = { ...state.userData, ...action.payload };
+        },
+        clearUserData: (state) => {
+            state.userData = null;
+            state.loading = false;
+            state.error = null;
+        },
+        setUserError: (state, action) => {
+            state.error = action.payload;
+            state.loading = false;
+        },
+        updateProfileImage: (state, action) => {
+            if (state.userData) {
+                state.userData.imageId = action.payload.imageId;
+            }
+        },
+        deleteProfileImage: (state) => {
+            if (state.userData) {
+                state.userData.imageId = null;
+            }
+        }
+    }
 });
 
-export const { fetchUserStart,
-               fetchUserSuccess,
-               fetchUserFailure,
-               updateProfileImage,
-               deleteProfileImage
-             } = userSlice.actions;
+export const {
+    setUserLoading,
+    setUserData,
+    updateUserData,
+    clearUserData,
+    setUserError,
+    updateProfileImage,
+    deleteProfileImage
+} = userSlice.actions;
 
 export default userSlice.reducer;

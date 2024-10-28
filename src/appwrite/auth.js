@@ -161,7 +161,18 @@ export class AuthService {
        async login({email, password}){
           try {
             console.log('Attempting login with:', { email });
-              const session = await this.account.createEmailPasswordSession(email, password);
+              const session = await this.account.createEmailPasswordSession(
+                email,
+                password,
+                {
+
+                    // Session configuration
+                    cookieSameSite: 'strict',  // or 'lax' based on your needs
+                    cookieSecure: true,        // for HTTPS only
+                    cookieDomain: conf.customDomain, // your custom domain
+                }
+
+              );
               console.log('Session created:', session);
 
               const user = await this.getCurrentUser();
@@ -201,7 +212,7 @@ export class AuthService {
 
         async logout(){
           try {
-            await this.account.deleteSessions();
+            await this.account.deleteSession('current');
           } catch (error) {
               console.log("Appwrite service :: logout :: error", error);
           }
