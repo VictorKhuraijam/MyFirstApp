@@ -24,8 +24,6 @@ function Login() {
     }
 };
 
-console.log('loginUserthunk:', loginUser)
-
   return (
     <div
     className='flex items-center justify-center w-full  m-4'
