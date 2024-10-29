@@ -14,7 +14,7 @@ function Login() {
   const login = async(data) => {
 
       try {
-        const result = await dispatch(loginUser(data)).unwrap();
+        const result = await dispatch(loginUser(data));
         if (result?.success) {
             navigate("/");
         }
