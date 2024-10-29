@@ -11,12 +11,13 @@ export class AuthService {
             this.client
                 .setEndpoint(conf.appwriteUrl)
                 .setProject(conf.appwriteProjectId)
-                .setSelfSigned(false) //Enable SSL verification
-                .setHTTPConfiguration({ //Set secure HTTP options
-                  followRedirects: true,
-                  timeout: 30, // 30 seconds timout
-                  maxRedirects: 10
-                });
+
+                  // Modern way to configure client options
+            this.client.config = {
+              ...this.client.config,
+              timeout: 30000, // 30 seconds in milliseconds
+              maxRedirects: 10,
+          };
 
             this.account = new Account(this.client)
             this.avatars = new Avatars(this.client)
@@ -166,16 +167,16 @@ export class AuthService {
        async login({email, password}){
           try {
             console.log('Attempting login with:', { email });
-              const session = await this.account.createEmailPasswordSession(
+              const session = await this.account.createSession(
                 email,
                 password,
-                {
-                    // Session configuration
-                    cookieSameSite: 'strict',  // or 'lax' based on your needs
-                    cookieSecure: true,        // for HTTPS only
-                    cookieDomain: conf.appwriteCookieDomain, // your cookie domain
-                    cookieFallback: false //Disable local Storage fallback
-                }
+                // {
+                //     // Session configuration
+                //     cookieSameSite: 'strict',  // or 'lax' based on your needs
+                //     cookieSecure: true,        // for HTTPS only
+                //     cookieDomain: conf.appwriteCookieDomain, // your cookie domain
+                //     cookieFallback: false //Disable local Storage fallback
+                // }
               );
               console.log('Session created:', session);
 
@@ -200,7 +201,7 @@ export class AuthService {
                 // Set secure headers for subsequent requests
                this.client.headers['X-Session-ID'] = session.$id;
 
-              return session
+              return {session, user}
           } catch (error) {
            console.error('Error response:',error.response);
             throw new Error(error.message || "Failed to login. Please check your email and password and try again")
@@ -235,6 +236,61 @@ export class AuthService {
             return null;
           }
         }
+
+        // Session check middleware function
+    async checkAuth() {
+      try {
+          const session = await this.getCurrentSession();
+          const user = await this.getCurrentUser();
+
+          return {
+              isAuthenticated: !!(session && user),
+              user,
+              session
+          };
+      } catch (error) {
+        console.error(error)
+        return {
+              isAuthenticated: false,
+              user: null,
+              session: null
+          };
+      }
+  }
+
+  // Method to handle session expiration
+  async refreshSession() {
+      try {
+          const session = await this.getCurrentSession();
+          if (!session) {
+              throw new Error('No active session');
+          }
+
+          // Check if session needs refresh (e.g., 1 hour before expiry)
+          const expiryTime = new Date(session.expire);
+          const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+
+          if (expiryTime <= oneHourFromNow) {
+              // Create a new session
+              const user = await this.getCurrentUser();
+              if (!user) {
+                  throw new Error('No user found');
+              }
+
+              await this.logout(); // Clear existing session
+              return await this.login({
+                  email: user.email,
+                  // You'll need to handle password re-entry here
+                  // or implement a refresh token mechanism
+              });
+          }
+
+          return session;
+      } catch (error) {
+          console.error("Session refresh error:", error);
+          throw error;
+      }
+  }
 
 
         async logout(){

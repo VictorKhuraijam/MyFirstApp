@@ -44,16 +44,15 @@ export const initializeSession = () => async (dispatch) => {
 export const loginUser = ({ email, password }) => async (dispatch) => {
     dispatch(setLoading(true));
     try {
-        const session = await authService.login({ email, password });
-        if (session) {
-            const userData = await authService.getCurrentUser();
-            if (userData) {
+        const {session, user} = await authService.login({ email, password });
+        if (session && user) {
+
                 dispatch(loginSuccess());
-                const userDoc = await authService.getUser(userData.$id);
+                const userDoc = await authService.getUser(user.$id);
                 if (userDoc) {
                     dispatch(setUserData(userDoc));
                 }
-            }
+
         }
         return session;
     } catch (error) {
