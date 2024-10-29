@@ -1,5 +1,5 @@
 
-import { setLoading, loginSuccess, setAuthError } from "./authSlice";
+import { setLoading, loginSuccess, setAuthError, logout } from "./authSlice";
 import { setUserData, setUserError } from "./userSlice";
 import authService from "../appwrite/auth";
 
@@ -10,18 +10,18 @@ export const initializeSession = () => async (dispatch) => {
         const session = await authService.getCurrentSession();
 
         if (!session) {
-            dispatch(setLoading(false));
+            dispatch(logout());
             return null;
         }
 
         // If we have a session, get the user data
-        const userData = await authService.getCurrentUser();
-        if (userData) {
+        const user = await authService.getCurrentUser();
+        if (user) {
             // Set auth state
             dispatch(loginSuccess());
 
             // Get detailed user info from database
-            const userDoc = await authService.getUser(userData.$id);
+            const userDoc = await authService.getUser(user.$id);
             if (userDoc) {
                 dispatch(setUserData(userDoc));
             } else {
@@ -29,7 +29,7 @@ export const initializeSession = () => async (dispatch) => {
             }
         }
 
-        return userData;
+        return user;
     } catch (error) {
         console.error("Session initialization error:", error);
         dispatch(setAuthError(error.message));

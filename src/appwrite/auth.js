@@ -7,12 +7,17 @@ export class AuthService {
     client = new Client();
     account;
 
-
-
         constructor() {
             this.client
                 .setEndpoint(conf.appwriteUrl)
-                .setProject(conf.appwriteProjectId);
+                .setProject(conf.appwriteProjectId)
+                .setSelfSigned(false) //Enable SSL verification
+                .setHTTPConfiguration({ //Set secure HTTP options
+                  followRedirects: true,
+                  timeout: 30, // 30 seconds timout
+                  maxRedirects: 10
+                });
+
             this.account = new Account(this.client)
             this.avatars = new Avatars(this.client)
             this.databases = new Databases(this.client)
@@ -55,7 +60,7 @@ export class AuthService {
       async sendVerificationEmail () {
         try {
           await this.account.createVerification(
-            `${conf.AppwriteRedirectUrl}/verify-email`// frontend verification page URL
+            `${conf.appwriteRedirectUrl}/verify-email`// frontend verification page URL
           );
           return true;
         } catch (error) {
@@ -112,8 +117,8 @@ export class AuthService {
         try {
           return this.account.createOAuth2Session(
             'google',
-            conf.AppwriteRedirectUrl + '/oauth/callback', //Success URL
-            conf.AppwriteRedirectUrl + '/login', // Failure URL
+            conf.appwriteRedirectUrl + '/oauth/callback', //Success URL
+            conf.appwriteRedirectUrl + '/login', // Failure URL
             ['profile', 'email']  // Requested scopes
           );
 
@@ -165,29 +170,40 @@ export class AuthService {
                 email,
                 password,
                 {
-
                     // Session configuration
                     cookieSameSite: 'strict',  // or 'lax' based on your needs
                     cookieSecure: true,        // for HTTPS only
-                    cookieDomain: conf.customDomain, // your custom domain
+                    cookieDomain: conf.appwriteCookieDomain, // your cookie domain
+                    cookieFallback: false //Disable local Storage fallback
                 }
-
               );
               console.log('Session created:', session);
 
-              const user = await this.getCurrentUser();
-              console.log('Current user:', user);
+               console.log('Current user:', user);
+
+              // Verify session creation
+                  if (!session || !session.$id) {
+                    throw new Error('Invalid session created');
+                  }
+
+                const user = await this.getCurrentUser();
+                if (!user) {
+                    throw new Error('Failed to fetch user data');
+                  }
+
 
               //Check if email is verified
               if(!user.emailVerification){
                 await this.account.deleteSession('current'); //log out
                 throw new Error("Please verify your email before logging in.");
               }
+                // Set secure headers for subsequent requests
+               this.client.headers['X-Session-ID'] = session.$id;
+
               return session
           } catch (error) {
-           console.error(error);
            console.error('Error response:',error.response);
-            throw new Error("Failed to login. Please check your email and password and try again")
+            throw new Error(error.message || "Failed to login. Please check your email and password and try again")
             }
           }
 
@@ -202,7 +218,18 @@ export class AuthService {
 
         async getCurrentSession() {
           try {
-            return await this.account.getSession('current');
+            const session =  await this.account.getSession('current');
+            if(!session){
+              return null;
+            }
+              // Verify session validity
+              const sessionExpiry = new Date(session.expire);
+              if (sessionExpiry <= new Date()) {
+                  await this.logout();
+                  return null;
+              }
+              return session;
+
           } catch (error) {
             console.log("Appwrite service :: getCurrentSession :: error", error);
             return null;
@@ -213,6 +240,8 @@ export class AuthService {
         async logout(){
           try {
             await this.account.deleteSession('current');
+            // Clear any client-side session data
+            this.client.headers['X-Session-ID'] = '';
           } catch (error) {
               console.log("Appwrite service :: logout :: error", error);
           }

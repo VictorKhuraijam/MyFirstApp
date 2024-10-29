@@ -9,8 +9,10 @@ const conf = {
   appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
   appwriteProfileBucketId: String(import.meta.env.VITE_APPWRITE_PROFILE_BUCKET_ID),
   RTE_Api: String(import.meta.env.VITE_RTE_API),
-  AppwriteRedirectUrl: 'https://victorblog.in',
-  AppwriteCustomDomain: String(import.meta.env.VITE_APPWRITE_CUSTOM_DOMAIN)
+  appwriteRedirectUrl: String(import.meta.env.VITE_APPWRITE_REDIRECT_URL),
+  appwriteCustomDomain: String(import.meta.env.VITE_APPWRITE_CUSTOM_DOMAIN),
+  appwriteCookieDomain: String(import.meta.env.VITE_APPWRITE_COOKIE_DOMAIN),
+  cookieFallback: false // disable localStoragefallback
 }
 
 

@@ -12,10 +12,9 @@ function Login() {
   const {error, loading} = useSelector((state) => state.auth)
 
   const login = async(data) => {
-
       try {
-        const result = await dispatch(loginUser(data));
-        if (result?.success) {
+        const session = await dispatch(loginUser(data));
+        if (session) {
             navigate("/");
         }
     } catch (error) {
