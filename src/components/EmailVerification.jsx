@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { login } from '../store/authSlice.js'
+import { loginSuccess, setLoading, setAuthError } from '../store/authSlice.js'
 import { Button, Logo } from './index.js'
 import authService from '../appwrite/auth.js'
 
@@ -16,6 +16,7 @@ function EmailVerification() {
 
     useEffect(() => {
         const verifyEmail = async () => {
+            dispatch(setLoading(true))
             try {
                 const secret = searchParams.get('secret')
                 const userId = searchParams.get('userId')
@@ -32,13 +33,16 @@ function EmailVerification() {
                 // Log in the user after successful verification
                 const userData = await authService.getCurrentUser()
                 if (userData) {
-                    dispatch(login(userData))
+                    dispatch(loginSuccess())
                     // Redirect after 3 seconds
                     setTimeout(() => navigate('/'), 3000)
                 }
             } catch (error) {
                 setVerificationStatus('error')
                 setError(error.message)
+                dispatch(setAuthError(error.message))
+            } finally {
+                dispatch(setLoading(false))
             }
         }
 
@@ -49,6 +53,7 @@ function EmailVerification() {
         if (resendCooldown > 0 || isResending) return
 
         setIsResending(true);
+        dispatch(setLoading(true))
         try {
             await authService.sendVerificationEmail()
             setResendCooldown(60) // Start 60 second cooldown
@@ -68,6 +73,7 @@ function EmailVerification() {
             setError('Failed to resend verification email')
         } finally{
             setIsResending(false)
+            dispatch(setLoading(false))
         }
     }
 
