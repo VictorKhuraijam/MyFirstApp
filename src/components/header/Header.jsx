@@ -1,37 +1,45 @@
+import { useEffect, useState } from 'react'
 import { Container, Logo, LogoutBtn } from '../index'
 import { NavLink, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
 import appwriteService from '../../appwrite/config'
 import { getCurrentUserData } from '../../store/getCurrentUserData'
 import { HiMenu, HiX } from 'react-icons/hi'
 
 function Header() {
-  const userData = useSelector((state) => state.auth.userData);
-  const status = useSelector((state) => state.auth.status);
+  const userData = useSelector((state) => state.user.userData);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const dispatch = useDispatch();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profileImageId, setProfileImageId] = useState(userData?.imageUrl || '/assets/profile-placeholder.svg');
+  const [profileImage, setProfileImage] = useState(userData?.imageUrl || '/assets/profile-placeholder.svg');
 
   useEffect(() => {
-    if (status === null || status === undefined) {
-      return;
+    const fetchUserData = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        await dispatch(getCurrentUserData());
+      } catch (err) {
+        setError(`Failed to load user data: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthenticated !== null && isAuthenticated !== undefined) {
+      fetchUserData();
     }
-    if(status && !userData) {
-      dispatch(getCurrentUserData())
-        .catch((err) => setError(`Failed to load user data: ${err.message}`))
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false);
-    }
-  }, [dispatch, userData, status]);
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     if (userData) {
-      setProfileImageId(
+      setProfileImage(
         userData.imageId
           ? appwriteService.getProfilePicturePreview(userData.imageId)
           : userData?.imageUrl || '/assets/profile-placeholder.svg'
@@ -48,22 +56,22 @@ function Header() {
     {
       name: "Login",
       slug: "/login",
-      active: !status,
+      active: !isAuthenticated,
     },
     {
       name: "Signup",
       slug: "/signup",
-      active: !status,
+      active: !isAuthenticated,
     },
     {
       name: "All Posts",
       slug: "/all-posts",
-      active: status,
+      active: isAuthenticated,
     },
     {
       name: "Add Post",
       slug: "/add-post",
-      active: status,
+      active: isAuthenticated,
     },
     {
       name: "Explore",
@@ -72,44 +80,55 @@ function Header() {
     },
   ];
 
-  if(loading) {
-    return <div>Loading user data...</div>;
+   // Handle profile image error
+   const handleImageError = () => {
+    setProfileImage('/assets/profile-placeholder.svg');
+  };
+
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-16 bg-gray-500 rounded-xl">
+        <div className="animate-pulse text-white">Loading...</div>
+      </div>
+    );
   }
 
-  if(error) {
-    return <div>{error}</div>;
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-16 bg-gray-500 rounded-xl">
+        <div className="text-red-200">{error}</div>
+      </div>
+    );
   }
+
 
   return (
     <header className='relative py-3 shadow bg-gray-500 rounded-xl'>
       <Container>
         <nav className='relative flex justify-between items-center'>
           <div className='mr-4'>
-            {!status ? (
-              <Link to="/">
-                <Logo width='100px' />
+          {isAuthenticated && userData ? (
+              <Link
+                to={`/profile/${userData.$id}`}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={profileImage}
+                  alt={`${userData.name || 'User'}'s profile`}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-white"
+                  onError={handleImageError}
+                />
+                <span className="hidden md:block text-white font-medium">
+                  {userData.name || 'User'}
+                </span>
               </Link>
-            ) : userData ? (
-              <div>
-                <Link to={`/profile/${userData.$id}`} className='flex items-center gap-3'>
-                  <img
-                    src={profileImageId}
-                    alt="profile"
-                    className='h-10 w-10 rounded-full'
-                    onError={(e) => {
-                      e.target.src = '/assets/profile-placeholder.svg'
-                      setProfileImageId(userData?.imageUrl || '/assets/profile-placeholder.svg')
-                    }}
-                  />
-                </Link>
-              </div>
             ) : (
-              <div>
-                 <Link to="/">
-                  <Logo  />
-                </Link>
-              </div>
+              <Link to="/" className="hover:opacity-80 transition-opacity">
+                <Logo width="100px" />
+              </Link>
             )}
+
           </div>
 
           {/* Menu Icon for Small Devices */}
@@ -157,7 +176,7 @@ function Header() {
                   </li>
                 )
               )}
-              {status && (
+              {isAuthenticated && (
                 <li>
                   <LogoutBtn />
                 </li>
