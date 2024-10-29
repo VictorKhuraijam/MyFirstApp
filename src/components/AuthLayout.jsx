@@ -7,34 +7,30 @@ export default function Protected({children, authentication = true}) {
 
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
-  const authStatus = useSelector((state) => state.auth.status)
-  const isRehydrated = useSelector((state) => state.auth._persist?.rehydrated);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
 
-  console.log("Auth Status in Protected:", authStatus)
-  console.log("Is Rehydrated: ", isRehydrated);
+  console.log("Auth Status in Protected:", isAuthenticated)
 
   useEffect(() => {
 
-    // if(authStatus === true){
-    //   navigate("/")
-    // } else if(authStatus === false){
-    //   navigate("/login")
-    // }
-    const checkAuth = () => {
-      // Ensure that rehydration is complete before checking auth status
-      if(isRehydrated){
+          // if(isAuthenticated === true){
+          //   navigate("/")
+          // } else if(isAuthenticated === false){
+          //   navigate("/login")
+          // }
+
         // If authentication is required and the user is not authenticated, redirect to login
-        if (authentication && authStatus !== authentication) {
+        if (authentication && isAuthenticated !== authentication) {
           navigate("/login");
-        } else if (!authentication && authStatus !== authentication) {
+        }
+        // If authentication is not required (public route) and user is authenticated
+         else if (!authentication && isAuthenticated !== authentication) {
           navigate("/");
         }
         setLoading(false);
-      }
-    };
 
-    checkAuth();
-  }, [authStatus, navigate, authentication, isRehydrated])
+
+  }, [isAuthenticated, navigate, authentication])
 
 
   return loading ? <h1>loading...</h1> : <> {children} </>
