@@ -62,21 +62,3 @@ export const loginUser = ({ email, password }) => async (dispatch) => {
         dispatch(setLoading(false));
     }
 };
-
-// Google OAuth thunk
-export const handleGoogleAuth = () => async (dispatch) => {
-    dispatch(setLoading(true));
-    try {
-        const userData = await authService.handleGoogleCallback();
-        if (userData) {
-            dispatch(loginSuccess());
-            dispatch(setUserData(userData));
-        }
-        return userData;
-    } catch (error) {
-        dispatch(setAuthError(error.message));
-        throw error;
-    } finally {
-        dispatch(setLoading(false));
-    }
-};

@@ -7,22 +7,15 @@ export class AuthService {
     client = new Client();
     account;
 
+
+
         constructor() {
             this.client
                 .setEndpoint(conf.appwriteUrl)
-                .setProject(conf.appwriteProjectId)
-
-                  // Modern way to configure client options
-            this.client.config = {
-              ...this.client.config,
-              timeout: 30000, // 30 seconds in milliseconds
-              maxRedirects: 10,
-          };
-
+                .setProject(conf.appwriteProjectId);
             this.account = new Account(this.client)
             this.avatars = new Avatars(this.client)
             this.databases = new Databases(this.client)
-
 
           }
 
@@ -35,8 +28,7 @@ export class AuthService {
                     password,
                     name,
                   );
-                    // Send verification email
-                    await this.sendVerificationEmail();
+
 
                     const userId = userAccount.$id;
                     const avatarUrl = this.avatars.getInitials(name)
@@ -47,164 +39,24 @@ export class AuthService {
                       email: userAccount.email,
                       username,
                       imageUrl: avatarUrl,
-                      isEmailVerified: false, //field to track verification status
                     })
 
-                    return newUser;
+                    return {newUser, userId};
 
              } catch (error) {
                     console.error("Sign up error", error);
                   }
             }
 
-      // email Verification Methods
-      async sendVerificationEmail () {
-        try {
-          await this.account.createVerification(
-            `${conf.appwriteRedirectUrl}/verify-email`// frontend verification page URL
-          );
-          return true;
-        } catch (error) {
-          console.error("Error sending verification email:", error);
-          throw error ;
-        }
-      }
-
-      async confirmVerification(userId, secret) {
-        try {
-          await this.account.updateVerification(userId, secret);
-
-          // Update user's verification status in database
-          const userDocId = await this.getUserDocumentId(userId);
-          if(userDocId){
-            await this.databases.updateDocument(
-              conf.appwriteDatabaseId,
-              conf.appwriteUsersCollectionId,
-              userDocId,
-              {
-                isEmailVerified: true
-              }
-            );
-          }
-          return true;
-        } catch (error) {
-          console.error("Error confirming verification:", error);
-          throw error;
-        }
-      }
-
-      async resendVerification(){
-        try {
-          await this.sendVerificationEmail()
-          return true;
-        } catch (error) {
-          console.error("Error resending verification:", error);
-          throw error;
-        }
-      }
-
-      async isEmailVerified(){
-        try {
-          const user = await this.getCurrentUser();
-          return user.emailVerification;
-        } catch (error) {
-          console.error("Error checking verification status:", error);
-          return false;
-        }
-      }
-
-      //Google Authentication Methods
-      async createGoogleAuthSession() {
-        try {
-          return this.account.createOAuth2Session(
-            'google',
-            conf.appwriteRedirectUrl + '/oauth/callback', //Success URL
-            conf.appwriteRedirectUrl + '/login', // Failure URL
-            ['profile', 'email']  // Requested scopes
-          );
-
-        } catch (error) {
-          console.error("Google auth session error:", error);
-          throw error;
-        }
-      }
-
-      async handleGoogleCallback(){
-        try {
-          const session = await this.getCurrentSession();
-          if(!session){
-            throw new Error("No active session found");
-          }
-
-          const user = await this.getCurrentUser()
-          if(!user){
-            throw new Error("No user found");
-          }
-
-          //Check if user already exists in database
-          let dbUser = await this.listUserByUserId(user.$id);
-          if(!dbUser){
-            //Create new user in database
-            const avatarUrl = this.avatars.getInitials(user.name);
-            dbUser = await this.saveUserToDB({
-              userId: user.$id,
-              name: user.name,
-              email: user.email,
-              username: user.email.split('@')[0], // Create a default username
-              imageUrl: avatarUrl,
-              isEmailVerified: true, // Google-authenticated users are verified
-              authProvider: 'google'
-            });
-          }
-          return dbUser;
-        } catch (error) {
-          console.error("Google callback error:", error);
-          throw error;
-        }
-      }
-
-      //Enhanced login method to check verification
        async login({email, password}){
           try {
             console.log('Attempting login with:', { email });
-              const session = await this.account.createSession(
-                email,
-                password,
-                // {
-                //     // Session configuration
-                //     cookieSameSite: 'strict',  // or 'lax' based on your needs
-                //     cookieSecure: true,        // for HTTPS only
-                //     cookieDomain: conf.appwriteCookieDomain, // your cookie domain
-                //     cookieFallback: false //Disable local Storage fallback
-                // }
-              );
-              console.log('Session created:', session);
+             return await this.account.createEmailPasswordSession(email, password,);
 
-               console.log('Current user:', user);
-
-              // Verify session creation
-                  if (!session || !session.$id) {
-                    throw new Error('Invalid session created');
-                  }
-
-                const user = await this.getCurrentUser();
-                if (!user) {
-                    throw new Error('Failed to fetch user data');
-                  }
-
-
-              //Check if email is verified
-              if(!user.emailVerification){
-                await this.account.deleteSession('current'); //log out
-                throw new Error("Please verify your email before logging in.");
-              }
-                // Set secure headers for subsequent requests
-               this.client.headers['X-Session-ID'] = session.$id;
-
-              return {session, user}
           } catch (error) {
+           console.error(error);
            console.error('Error response:',error.response);
-            throw new Error(error.message || "Failed to login. Please check your email and password and try again")
+            throw new Error("Failed to login. Please check your email and password and try again")
             }
           }
 
@@ -219,85 +71,17 @@ export class AuthService {
 
         async getCurrentSession() {
           try {
-            const session =  await this.account.getSession('current');
-            if(!session){
-              return null;
-            }
-              // Verify session validity
-              const sessionExpiry = new Date(session.expire);
-              if (sessionExpiry <= new Date()) {
-                  await this.logout();
-                  return null;
-              }
-              return session;
-
+            return await this.account.getSession('current');
           } catch (error) {
             console.log("Appwrite service :: getCurrentSession :: error", error);
             return null;
           }
         }
 
-        // Session check middleware function
-    async checkAuth() {
-      try {
-          const session = await this.getCurrentSession();
-          const user = await this.getCurrentUser();
-
-          return {
-              isAuthenticated: !!(session && user),
-              user,
-              session
-          };
-      } catch (error) {
-        console.error(error)
-        return {
-              isAuthenticated: false,
-              user: null,
-              session: null
-          };
-      }
-  }
-
-  // Method to handle session expiration
-  async refreshSession() {
-      try {
-          const session = await this.getCurrentSession();
-          if (!session) {
-              throw new Error('No active session');
-          }
-
-          // Check if session needs refresh (e.g., 1 hour before expiry)
-          const expiryTime = new Date(session.expire);
-          const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
-
-          if (expiryTime <= oneHourFromNow) {
-              // Create a new session
-              const user = await this.getCurrentUser();
-              if (!user) {
-                  throw new Error('No user found');
-              }
-
-              await this.logout(); // Clear existing session
-              return await this.login({
-                  email: user.email,
-                  // You'll need to handle password re-entry here
-                  // or implement a refresh token mechanism
-              });
-          }
-
-          return session;
-      } catch (error) {
-          console.error("Session refresh error:", error);
-          throw error;
-      }
-  }
-
 
         async logout(){
           try {
             await this.account.deleteSession('current');
-            // Clear any client-side session data
-            this.client.headers['X-Session-ID'] = '';
           } catch (error) {
               console.log("Appwrite service :: logout :: error", error);
           }

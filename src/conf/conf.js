@@ -11,8 +11,7 @@ const conf = {
   RTE_Api: String(import.meta.env.VITE_RTE_API),
   appwriteRedirectUrl: String(import.meta.env.VITE_APPWRITE_REDIRECT_URL),
   appwriteCustomDomain: String(import.meta.env.VITE_APPWRITE_CUSTOM_DOMAIN),
-  appwriteCookieDomain: String(import.meta.env.VITE_APPWRITE_COOKIE_DOMAIN),
-  cookieFallback: false // disable localStoragefallback
+  
 }
 
 

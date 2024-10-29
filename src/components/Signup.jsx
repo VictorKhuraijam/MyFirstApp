@@ -13,19 +13,17 @@ function Signup() {
     setError("")
     try {
 
-        const userData = await authService.createAccount({
+        const newUser = await authService.createAccount({
           email: data.email,
           password: data.password,
           name: data.name,
           username: data.username,
         })
 
-        if(userData){
+        if(newUser && newUser.$id){
          // Instead of immediately loggin in and navigating to home,
          //show a verification required message
-          navigate("/verification-pending", {
-            state: {email: data.email}
-          })
+          navigate("/profile/${newUser.$id}" )
         }
     } catch (error)  {
           setError(error.message);
