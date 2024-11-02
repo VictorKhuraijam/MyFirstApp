@@ -24,7 +24,7 @@ function Comments({ postId }) {
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedCommentContent, setEditedCommentContent] = useState("");
     const { comments, loading, error } = useSelector(state => state.comments);
-    const userData = useSelector(state => state.auth.userData);
+    const userData = useSelector(state => state.user.userData);
     const [user, setUser] = useState({})
     const dispatch = useDispatch();
 

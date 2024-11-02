@@ -15,7 +15,7 @@ export default function Post() {
 
     const {loading, error} = useSelector(state => state.posts );
 
-    const userData = useSelector((state) => state.auth.userData);
+    const userData = useSelector((state) => state.user.userData);
 
     useEffect(() => {
         const fetchPost = async () => {

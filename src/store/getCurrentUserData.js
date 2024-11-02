@@ -1,5 +1,5 @@
 import { setUserLoading, setUserData, setUserError } from "./userSlice";
-import { loginSuccess, setAuthError } from "./authSlice";
+import { loginSuccess} from "./authSlice";
 import authService from "../appwrite/auth";
 
 export const getCurrentUserData = () => async (dispatch) => {
@@ -25,7 +25,6 @@ export const getCurrentUserData = () => async (dispatch) => {
         }
     } catch (error) {
         console.log("Error fetching current user data:", error);
-        dispatch(setAuthError(error.message));
         dispatch(setUserError(error.message));
         throw error;
     } finally {

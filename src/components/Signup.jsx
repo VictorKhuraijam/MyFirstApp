@@ -20,10 +20,11 @@ function Signup() {
           username: data.username,
         })
 
-        if(newUser && newUser.$id){
-         // Instead of immediately loggin in and navigating to home,
-         //show a verification required message
-          navigate("/profile/${newUser.$id}" )
+        if(newUser){
+          setError("Account created successfully! You can now log in.")  // Using error state to show success
+          setTimeout(() => {
+            navigate('/login')
+          }, 5000) // Redirects after 2 seconds
         }
     } catch (error)  {
           setError(error.message);
@@ -53,6 +54,7 @@ function Signup() {
                 </p>
                 {error && <p className='text-red-600 mt-8 text-center'>{error}
                 </p>}
+
 
                 <form onSubmit={handleSubmit(create)}>
                   <div className='space-y-5'>

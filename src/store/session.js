@@ -10,7 +10,7 @@ export const initializeSession = () => async (dispatch) => {
 
         if (!session) {
             dispatch(logout());
-            return null;
+            return ;
         }
 
         // If we have a session, get the user data
@@ -31,9 +31,9 @@ export const initializeSession = () => async (dispatch) => {
         return user;
     } catch (error) {
         console.error("Session initialization error:", error);
-        dispatch(setAuthError(error.message));
+        dispatch(setAuthError(error.message || "Session initialization failed"));
         dispatch(setUserError(error.message));
-        return null;
+        ;
     } finally {
         dispatch(setLoading(false));
     }
@@ -45,9 +45,7 @@ export const loginUser = ({ email, password }) => async (dispatch) => {
     try {
         const session = await authService.login({ email, password });
         if (session ) {
-
-                dispatch(loginSuccess());
-
+            await dispatch(initializeSession())
         }
         return session;
     } catch (error) {

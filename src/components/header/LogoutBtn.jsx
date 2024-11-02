@@ -2,6 +2,7 @@ import {useDispatch} from 'react-redux'
 import authService from '../../appwrite/auth'
 import {logout} from  '../../store/authSlice'
 import { useNavigate } from 'react-router-dom'
+import { clearUserData } from '../../store/userSlice'
 
 
 function LogoutBtn() {
@@ -13,6 +14,7 @@ function LogoutBtn() {
       authService.logout()
       .then(() => {
           dispatch(logout())
+          dispatch(clearUserData())
           navigate('/');
       }) .catch(error => {
         console.error("Logout failed:", error);

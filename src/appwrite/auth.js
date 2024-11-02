@@ -1,3 +1,4 @@
+
 import conf from '../conf/conf.js'
 import appwriteService from './config.js'
 import { Client, Account, ID, Avatars, Databases, Query} from 'appwrite'
@@ -29,7 +30,6 @@ export class AuthService {
                     name,
                   );
 
-
                     const userId = userAccount.$id;
                     const avatarUrl = this.avatars.getInitials(name)
 
@@ -45,6 +45,7 @@ export class AuthService {
 
              } catch (error) {
                     console.error("Sign up error", error);
+                    throw error
                   }
             }
 
@@ -81,7 +82,7 @@ export class AuthService {
 
         async logout(){
           try {
-            await this.account.deleteSession('current');
+            await this.account.deleteSessions();
           } catch (error) {
               console.log("Appwrite service :: logout :: error", error);
           }

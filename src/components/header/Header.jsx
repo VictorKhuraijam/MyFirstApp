@@ -12,30 +12,15 @@ function Header() {
   const dispatch = useDispatch();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [profileImage, setProfileImage] = useState(userData?.imageUrl || '/assets/profile-placeholder.svg');
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!isAuthenticated) {
-        setLoading(false);
-        return;
-      }
 
-      try {
-        await dispatch(getCurrentUserData());
-      } catch (err) {
-        setError(`Failed to load user data: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated !== null && isAuthenticated !== undefined) {
-      fetchUserData();
+    if(isAuthenticated && !userData) {
+      dispatch(getCurrentUserData())
+        .catch((err) => console.error(`Failed to load user data: ${err.message}`))
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, userData, isAuthenticated]);
 
   useEffect(() => {
     if (userData) {
@@ -54,6 +39,11 @@ function Header() {
       active: true,
     },
     {
+      name: "Explore",
+      slug: '/explore',
+      active: true,
+    },
+    {
       name: "Login",
       slug: "/login",
       active: !isAuthenticated,
@@ -63,44 +53,18 @@ function Header() {
       slug: "/signup",
       active: !isAuthenticated,
     },
-    {
-      name: "All Posts",
-      slug: "/all-posts",
-      active: isAuthenticated,
-    },
+    // {
+    //   name: "All Posts",
+    //   slug: "/all-posts",
+    //   active: isAuthenticated,
+    // },
     {
       name: "Add Post",
       slug: "/add-post",
       active: isAuthenticated,
     },
-    {
-      name: "Explore",
-      slug: '/explore',
-      active: true,
-    },
   ];
 
-   // Handle profile image error
-   const handleImageError = () => {
-    setProfileImage('/assets/profile-placeholder.svg');
-  };
-
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-16 bg-gray-500 rounded-xl">
-        <div className="animate-pulse text-white">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-16 bg-gray-500 rounded-xl">
-        <div className="text-red-200">{error}</div>
-      </div>
-    );
-  }
 
 
   return (
@@ -108,27 +72,31 @@ function Header() {
       <Container>
         <nav className='relative flex justify-between items-center'>
           <div className='mr-4'>
-          {isAuthenticated && userData ? (
-              <Link
-                to={`/profile/${userData.$id}`}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-              >
-                <img
-                  src={profileImage}
-                  alt={`${userData.name || 'User'}'s profile`}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-white"
-                  onError={handleImageError}
-                />
-                <span className="hidden md:block text-white font-medium">
-                  {userData.name || 'User'}
-                </span>
+          {!isAuthenticated ? (
+              <Link to="/">
+                <Logo width='100px' />
               </Link>
+            ) : userData ? (
+              <div>
+                <Link to={`/profile/${userData.$id}`} className='flex items-center gap-3'>
+                  <img
+                    src={profileImage}
+                    alt="profile"
+                    className='h-10 w-10 rounded-full'
+                    onError={(e) => {
+                      e.target.src = '/assets/profile-placeholder.svg'
+                      setProfileImage(userData?.imageUrl || '/assets/profile-placeholder.svg')
+                    }}
+                  />
+                </Link>
+              </div>
             ) : (
-              <Link to="/" className="hover:opacity-80 transition-opacity">
-                <Logo width="100px" />
-              </Link>
+              <div>
+                 <Link to="/">
+                  <Logo  />
+                </Link>
+              </div>
             )}
-
           </div>
 
           {/* Menu Icon for Small Devices */}

@@ -1,20 +1,24 @@
+import { useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import { loginUser } from '../store/session'
 import {Button, Input, Logo} from './index.js'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import {useForm} from 'react-hook-form'
+import { getCurrentUserData } from '../store/getCurrentUserData.js'
 
 
 function Login() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const {register, handleSubmit} = useForm();
-  const {error, loading} = useSelector((state) => state.auth)
+  const [error, setError] = useState("")
 
   const login = async(data) => {
+    setError('')
       try {
-        const session = await dispatch(loginUser(data));
+        const session =  dispatch(loginUser(data));
         if (session) {
+            dispatch(getCurrentUserData())
             navigate("/");
         }
     } catch (error) {
@@ -70,9 +74,9 @@ function Login() {
                 <Button
                  type='submit'
                  className='w-full'
-                 disabled={loading}
+
                  >
-                            {loading ? 'Signing in...' : 'Sign in'}
+                          Sign in
                  </Button>
             </div>
         </form>

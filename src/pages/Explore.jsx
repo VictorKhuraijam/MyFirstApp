@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import UserProfileCard from '../components/UserProfileCard'; // Import the UserProfileCard component
+import UserProfileCard from '../components/UserProfileCard'; 
 import {SearchBar} from '../components/index'
 import authService from '../appwrite/auth';
 import { Container } from '../components/index';
