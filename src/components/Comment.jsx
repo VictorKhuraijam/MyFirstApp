@@ -235,7 +235,7 @@ function Comments({ postId }) {
                     ))
                 ) : (
                     <p className="text-gray-500 italic text-center">
-                        No comments yet. {userData ? 'Be the first to comment!' : 'Sign up to be the first to comment!'}
+                        No comments yet. 
                     </p>
                 )}
             </div>
