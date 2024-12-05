@@ -8,8 +8,6 @@ export class AuthService {
     client = new Client();
     account;
 
-
-
         constructor() {
             this.client
                 .setEndpoint(conf.appwriteUrl)
@@ -17,7 +15,6 @@ export class AuthService {
             this.account = new Account(this.client)
             this.avatars = new Avatars(this.client)
             this.databases = new Databases(this.client)
-
           }
 
         async createAccount({email, password, name, username }) {
