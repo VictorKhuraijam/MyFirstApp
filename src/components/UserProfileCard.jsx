@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import appwriteService from '../appwrite/config';
 import authService from '../appwrite/auth';
 import { Container } from '../components/index';
@@ -35,12 +34,10 @@ function UserProfileCard({ userDocId }) {
   return (
     <Container>
       <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 px-4">
-        <Link
-          to={`/profile/${userDocId}`}
-          className="block w-full sm:w-[340px] md:w-[380px] lg:w-[400px]"
+      <div
+          className="w-full sm:w-[340px] md:w-[380px] lg:w-[400px] bg-white shadow-lg rounded-xl p-4 sm:p-6"
         >
-          <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
-            {/* Profile Image Section */}
+          {/* Profile Image Section */}
             <div className="flex justify-center mb-3 sm:mb-6">
               <img
                 src={user?.imageId ? appwriteService.getProfilePicturePreview(user.imageId) : user.imageUrl}
@@ -79,7 +76,7 @@ function UserProfileCard({ userDocId }) {
               </div>
             </div>
           </div>
-        </Link>
+
       </div>
     </Container>
   );
