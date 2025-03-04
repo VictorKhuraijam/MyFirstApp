@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback} from 'react'
 import { Container, PostCard, SearchBar } from '../components'
-import authService from '../appwrite/auth'
+// import authService from '../appwrite/auth'
 import appwriteService from '../appwrite/config'
 import { useDispatch, useSelector } from 'react-redux'
 import {fetchPostsStart, fetchPostsSuccess, fetchPostsFailure} from '../store/postSlice'
